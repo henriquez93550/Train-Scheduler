@@ -12,68 +12,53 @@ var config = {
   //variable to reference the database
   var database = firebase.database();
 
-   // Click Button for adding changes to firebase
-   $("#click-button").on("click", function(event) {
-    // Prevent the page from refreshing
-    event.preventDefault();
+  $("#submit").on("click", function(event){
+	event.preventDefault();
+  getData();
+})
 
-    //Grabbed values from text boxes
+// Functions ===================================
 
-var trainName = $("#trainName").val().trim();
-var destination = $("#destination").val().trim();
-var firstTrain = moment($("#firstTrain").val().trim(), "LT").format("X");
-var frequency = $("#frequency").val().trim(); 
+// This function is called by the submit button being clicked
+// This function gathers data and pushes it to firebase
+function getData() {
+trainName = $("#trainName").val().trim();
+destination = $("#destination").val().trim();
+firstTrain = moment($("#firstTrain").val().trim(), "LT").format("X");
+frequency = $("#frequency").val().trim();
 
-// Creates local "temporary" object for train data
-var newTrain = {
-    trainName : trainName,
-    destination : destination,
-    firstTrain : firstTrain,
-    frequency : frequency,
-  };
+// Pushing info to database
+database.ref().push({
+  trainName : trainName,
+  destination : destination,
+  firstTrain : firstTrain,
+  frequency : frequency,
+  });
 
-    // Pushing info to database
-database.ref().push(newTrain);
-
-// Logs everything to console
-console.log(newTrain.trainName);
-console.log(newTrain.destination);
-console.log(newTrain.firstTrain);
-console.log(newTrain.frequency);
-
-alert("Train added successfully");
-
-// Clears all of the text-boxes
+// Emptying divs after clicking submit
 $("#trainName").val("");
 $("#destination").val("");
 $("#firstTrain").val("");
 $("#frequency").val("");
+
+};
+
+
+// This function notices if a child is added to the database
+// If a child is added the information is then added to the website
+database.ref().on("child_added", function(snapshot){
+var train = snapshot.val().trainName;
+var dest = snapshot.val().destination;
+var fTrain = snapshot.val().firstTrain;
+var freq = parseInt(snapshot.val().frequency);
+var m = Math.ceil(parseInt(moment().diff(moment.unix(fTrain, "X"), 'minutes'))/freq);
+var nextA = moment.unix(fTrain, "X").add(m*freq, "minutes");
+var nextAr= moment(nextA).format("LT");
+var minAway = moment(nextA).diff(moment(), "minutes")+1;
+
+
+
+
+$("#trainTable > tbody").append("<tr><td>" + train + "</td><td>" + dest + "</td><td>" + freq + "</td><td>" + nextAr + "</td><td>" + minAway + "</td></tr>");
+
 });
-
-// 3. Create Firebase event for adding trains to the database and a row in the html when a user adds an entry
-database.ref().on("child_added", function(childSnapshot) {
-    console.log(childSnapshot.val());
-
-    // Store everything into a variable.
-var trainName = childSnapshot.val().trainName;
-var destination = childSnapshot.val().destination;
-var firstTrain = childSnapshot.val().firstTrain;
-var frequency = childSnapshot.val().frequency;
-
-// Train Info
-console.log(trainName);
-console.log(destination);
-console.log(firstTrain);
-console.log(frequency;
-
-// Making time show for next arrival time
-var nextTime = moment.unix().format('LTS');
-// Create the new row
-var newRow = $("<tr>").append(
-    $("<td>").text(trainName),
-    $("<td>").text(destination),
-    $("<td>").text(firstTrain),
-    $("<td>").text(frequency),
-    $("<td>").text(empRate),
-    $("<td>").text(empBilled)
-  );

@@ -1,7 +1,5 @@
-.card-body a {
-    word-break: break-all;
-  }
-
-  .articleHeadline {
-    line-height: 1.5;
-  }
+#trainTable th,
+    td {
+      display: inline-block;
+      width: 16.575%;
+    }
